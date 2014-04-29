@@ -1,4 +1,4 @@
 erg
 ===
 
-Command line client for querying remote range servers.
+Command line client for querying range servers.
