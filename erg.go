@@ -1,71 +1,64 @@
 package main
 
 import (
-  "fmt"
-  "flag"
-  "net/http"
-  "net/url"
-  "bufio"
-  "sort"
-  "os"
+	"bufio"
+	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"sort"
 
-  "github.com/xaviershay/grange"
+	"github.com/xaviershay/grange"
+
+	goopt "github.com/droundy/goopt"
 )
 
-var (
-  expand bool
-)
-
-func init() {
-	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "  usage: erg [opts] QUERY")
-		fmt.Fprintln(os.Stderr, "example: erg -e @all")
-		fmt.Fprintln(os.Stderr, )
-
-		flag.PrintDefaults()
-
-		fmt.Fprintln(os.Stderr)
-	}
-	flag.BoolVar(&expand, "e", false, "Do not compress results")
-}
+var port = goopt.Int([]string{"-p", "--port"}, 8080, "Port to connect to")
+var host = goopt.String([]string{"-h", "--host"}, "localhost", "Host to connect to")
+var expand = goopt.Flag([]string{"-e", "--expand"}, []string{"--no-expand"},
+	"Do not compress results", "Compress results (default)")
 
 func main() {
-  flag.Parse()
-  var query string
-	switch flag.NArg() {
-  case 1:
-    query = flag.Arg(0)
-  default:
-		flag.Usage()
+	goopt.Parse(nil)
+
+	var query string
+	switch len(goopt.Args) {
+	case 1:
+		query = goopt.Args[0]
+	default:
 		os.Exit(1)
-  }
-  resp, err := http.Get("http://localhost:8080/range/list?" +
-    url.QueryEscape(query))
+	}
 
-  if err != nil {
-    fmt.Fprintln(os.Stderr, err)
-    os.Exit(1)
-  }
+	resp, err := http.Get(fmt.Sprintf("http://%s:%d/range/list?%s",
+		*host,
+		*port,
+		url.QueryEscape(query),
+	))
 
-  defer resp.Body.Close()
-  scanner := bufio.NewScanner(resp.Body)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
-  result := grange.NewResult()
-  for scanner.Scan() {
-    result.Add(scanner.Text())
-  }
-  if result.Cardinality() > 0 {
-    if expand {
-      strResult := []string{}
-      for node := range result.Iter() {
-        strResult = append(strResult, node.(string))
-      }
-      sort.Strings(strResult)
-      for _, node := range strResult {
-        fmt.Println(node)
-      }
-    } else {
-      fmt.Println(grange.Compress(&result))
-    }
-  }
+	defer resp.Body.Close()
+	scanner := bufio.NewScanner(resp.Body)
+
+	result := grange.NewResult()
+	for scanner.Scan() {
+		result.Add(scanner.Text())
+	}
+	if result.Cardinality() > 0 {
+		if *expand {
+			strResult := []string{}
+			for node := range result.Iter() {
+				strResult = append(strResult, node.(string))
+			}
+			sort.Strings(strResult)
+			for _, node := range strResult {
+				fmt.Println(node)
+			}
+		} else {
+			fmt.Println(grange.Compress(&result))
+		}
+	}
 }
