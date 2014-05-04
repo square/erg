@@ -26,6 +26,7 @@ func main() {
 	case 1:
 		query = goopt.Args[0]
 	default:
+		fmt.Fprintln(os.Stderr, goopt.Usage())
 		os.Exit(1)
 	}
 
