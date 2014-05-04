@@ -17,6 +17,8 @@ var port = goopt.Int([]string{"-p", "--port"}, 8080, "Port to connect to")
 var host = goopt.String([]string{"-h", "--host"}, "localhost", "Host to connect to")
 var expand = goopt.Flag([]string{"-e", "--expand"}, []string{"--no-expand"},
 	"Do not compress results", "Compress results (default)")
+var noSortResult = goopt.Flag([]string{"--no-sort"}, []string{"-s", "--sort"},
+	"Do not sort results. Only relevant with --expand option.", "Sort results (default)")
 
 func main() {
 	goopt.Parse(nil)
@@ -54,7 +56,9 @@ func main() {
 			for node := range result.Iter() {
 				strResult = append(strResult, node.(string))
 			}
-			sort.Strings(strResult)
+      if !*noSortResult {
+        sort.Strings(strResult)
+      }
 			for _, node := range strResult {
 				fmt.Println(node)
 			}
