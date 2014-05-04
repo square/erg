@@ -39,8 +39,14 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
   }
-  resp, _ := http.Get("http://localhost:8080/range/list?" +
+  resp, err := http.Get("http://localhost:8080/range/list?" +
     url.QueryEscape(query))
+
+  if err != nil {
+    fmt.Fprintln(os.Stderr, err)
+    os.Exit(1)
+  }
+
   defer resp.Body.Close()
   scanner := bufio.NewScanner(resp.Body)
 
