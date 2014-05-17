@@ -8,3 +8,5 @@ Command line client for querying range servers.
     # OSX
     brew tap xaviershay/self
     brew install erg
+
+    erg --help
