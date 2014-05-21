@@ -1,83 +1,72 @@
-package main
+package erg
 
 import (
 	"bufio"
 	"fmt"
+	"github.com/xaviershay/grange"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
-	"strconv"
-
-	"github.com/xaviershay/grange"
-
-	goopt "github.com/droundy/goopt"
 )
 
-var port = goopt.Int([]string{"-p", "--port"}, 8080, "Port to connect to. Can also be set with RANGE_PORT environment variable.")
-var host = goopt.String([]string{"-h", "--host"}, "localhost", "Host to connect to. Can also be set with RANGE_HOST environment variable.")
-var expand = goopt.Flag([]string{"-e", "--expand"}, []string{"--no-expand"},
-	"Do not compress results", "Compress results (default)")
-var noSortResult = goopt.Flag([]string{"--no-sort"}, []string{"-s", "--sort"},
-	"Do not sort results. Only relevant with --expand option.", "Sort results (default)")
+// Erg type
+// Sort boolean - turn it off/on for sorting on expand
+// default is true
+type Erg struct {
+	host string
+	port int
+	Sort bool
+}
 
-func main() {
-	if envHost := os.Getenv("RANGE_HOST"); len(envHost) > 0 {
-		*host = envHost
-	}
+// New(address string) returns a new erg
+// takes two arguments
+// host - hostname default - range
+// port - port default - 80
+func New(host string, port int) *Erg {
+	return &Erg{host: host, port: port, Sort: true}
+}
 
-	if envPort := os.Getenv("RANGE_PORT"); len(envPort) > 0 {
-		x, err := strconv.Atoi(envPort)
-		if err == nil {
-			*port = x
-		} else {
-			fmt.Fprintf(os.Stderr, "Invalid port in RANGE_PORT: %s\n", envPort)
-			os.Exit(1)
-		}
-	}
-	goopt.Parse(nil)
-
-	var query string
-	switch len(goopt.Args) {
-	case 1:
-		query = goopt.Args[0]
-	default:
-		fmt.Fprintln(os.Stderr, goopt.Usage())
-		os.Exit(1)
-	}
+// Expand takes a range expression as argument
+// and returns an slice of strings as result
+// err is set to nil on success
+func (e *Erg) Expand(query string) (result []string, err error) {
 
 	resp, err := http.Get(fmt.Sprintf("http://%s:%d/range/list?%s",
-		*host,
-		*port,
+		e.host,
+		e.port,
 		url.QueryEscape(query),
 	))
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	scanner := bufio.NewScanner(resp.Body)
 
-	result := grange.NewResult()
+	grangeResult := grange.NewResult()
 	for scanner.Scan() {
-		result.Add(scanner.Text())
+		grangeResult.Add(scanner.Text())
 	}
-	if result.Cardinality() > 0 {
-		if *expand {
-			strResult := []string{}
-			for node := range result.Iter() {
-				strResult = append(strResult, node.(string))
-			}
-			if !*noSortResult {
-				sort.Strings(strResult)
-			}
-			for _, node := range strResult {
-				fmt.Println(node)
-			}
-		} else {
-			fmt.Println(grange.Compress(&result))
+
+	if grangeResult.Cardinality() > 0 {
+		for node := range grangeResult.Iter() {
+			result = append(result, node.(string))
+		}
+		if e.Sort {
+			sort.Strings(result)
 		}
 	}
+
+	return result, nil
+}
+
+// Compress takes a slice of strings as argument
+// and returns a compressed form.
+func (*Erg) Compress(nodes []string) (result string) {
+	grangeResult := grange.NewResult()
+	for _, node := range nodes {
+		grangeResult.Add(node)
+	}
+	return grange.Compress(&grangeResult)
 }
