@@ -10,12 +10,18 @@ import (
 
 var port = goopt.Int([]string{"-p", "--port"}, 8080, "Port to connect to. Can also be set with RANGE_PORT environment variable.")
 var host = goopt.String([]string{"-h", "--host"}, "localhost", "Host to connect to. Can also be set with RANGE_HOST environment variable.")
+var ssl = goopt.Flag([]string{"-s", "--ssl"}, []string{"--no-ssl"},
+	"Don't use SSL", "Use SSL. Can also be set with RANGE_SSL environment variable.")
 var expand = goopt.Flag([]string{"-e", "--expand"}, []string{"--no-expand"},
 	"Do not compress results", "Compress results (default)")
 
 func main() {
 	if envHost := os.Getenv("RANGE_HOST"); len(envHost) > 0 {
 		*host = envHost
+	}
+
+	if envSsl := os.Getenv("RANGE_SSL"); len(envSsl) > 0 {
+		*ssl = true
 	}
 
 	if envPort := os.Getenv("RANGE_PORT"); len(envPort) > 0 {
@@ -38,7 +44,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	e := erg.New(*host, *port)
+	var e *erg.Erg
+
+	if *ssl {
+		e = erg.NewWithSsl(*host, *port)
+	} else {
+		e = erg.New(*host, *port)
+	}
+
 	result, err := e.Expand(query)
 	if err != nil {
 		fmt.Println("Error: ", err.Error())

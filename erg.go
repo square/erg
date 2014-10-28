@@ -2,6 +2,7 @@ package erg
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"github.com/xaviershay/grange"
 	"net/http"
@@ -15,23 +16,44 @@ import (
 type Erg struct {
 	host string
 	port int
+	ssl  bool
 	Sort bool
 }
 
 // New(address string) returns a new erg
 // takes two arguments
-// host - hostname default - range
-// port - port default - 80
+// host - hostname default - localhost
+// port - port default - 8080
+// ssl - use https or not default - false
 func New(host string, port int) *Erg {
-	return &Erg{host: host, port: port, Sort: true}
+	return &Erg{host: host, port: port, ssl: false, Sort: true}
+}
+
+func NewWithSsl(host string, port int) *Erg {
+	return &Erg{host: host, port: port, ssl: true, Sort: true}
 }
 
 // Expand takes a range expression as argument
 // and returns an slice of strings as result
 // err is set to nil on success
 func (e *Erg) Expand(query string) (result []string, err error) {
+	protocol := "http"
 
-	resp, err := http.Get(fmt.Sprintf("http://%s:%d/range/list?%s",
+	if e.ssl {
+		protocol = "https"
+	}
+	// TODO: Remove this with go 1.4
+	// http://stackoverflow.com/questions/25008571/golang-issue-x509-cannot-verify-signature-algorithm-unimplemented-on-net-http
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			MaxVersion:               tls.VersionTLS11,
+			PreferServerCipherSuites: true,
+		},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get(fmt.Sprintf("%s://%s:%d/range/list?%s",
+		protocol,
 		e.host,
 		e.port,
 		url.QueryEscape(query),
