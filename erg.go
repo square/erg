@@ -22,7 +22,7 @@ type Erg struct {
 
 // New(address string) returns a new erg
 // takes two arguments
-// host - hostname default - localhost
+// host - hostname default - 'range'
 // port - port default - 8080
 // ssl - use https or not default - false
 func New(host string, port int) *Erg {
