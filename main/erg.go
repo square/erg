@@ -9,7 +9,7 @@ import (
 )
 
 var port = goopt.Int([]string{"-p", "--port"}, 8080, "Port to connect to. Can also be set with RANGE_PORT environment variable.")
-var host = goopt.String([]string{"-h", "--host"}, "localhost", "Host to connect to. Can also be set with RANGE_HOST environment variable.")
+var host = goopt.String([]string{"-h", "--host"}, "range", "Host to connect to. Can also be set with RANGE_HOST environment variable.")
 var ssl = goopt.Flag([]string{"-s", "--ssl"}, []string{"--no-ssl"},
 	"Don't use SSL", "Use SSL. Can also be set with RANGE_SSL environment variable.")
 var expand = goopt.Flag([]string{"-e", "--expand"}, []string{"--no-expand"},
