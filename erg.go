@@ -3,8 +3,10 @@ package erg
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/xaviershay/grange"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
@@ -61,6 +63,14 @@ func (e *Erg) Expand(query string) (result []string, err error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		body, readErr := ioutil.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, readErr
+		}
+		return nil, errors.New(string(body))
 	}
 
 	defer resp.Body.Close()
