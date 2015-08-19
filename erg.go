@@ -5,11 +5,13 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/xaviershay/grange"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
+
+	"github.com/xaviershay/grange"
+	"vbom.ml/util/sortorder"
 )
 
 // Erg type
@@ -86,7 +88,7 @@ func (e *Erg) Expand(query string) (result []string, err error) {
 			result = append(result, node.(string))
 		}
 		if e.Sort {
-			sort.Strings(result)
+			sort.Sort(sortorder.Natural(result))
 		}
 	}
 
