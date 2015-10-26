@@ -1,5 +1,10 @@
 # Erg History
 
+# 1.2.0 - 26 Oct 2015
+
+* Non-zero exit code when the server does not return an HTTP 200 success code.
+* Expanded output is naturally sorted (9/10/11 rather than 10/11/9).
+
 # 1.1.1 - 28 Oct 2014
 
 * Internal refactor to expose `Erg` type for use by other libraries.
