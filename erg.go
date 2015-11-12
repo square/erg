@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/xaviershay/grange"
+	"github.com/square/grange"
 	"vbom.ml/util/sortorder"
 )
 

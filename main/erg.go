@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	goopt "github.com/droundy/goopt"
-	"github.com/xaviershay/erg"
+	"github.com/square/erg"
 	"os"
 	"strconv"
 )
