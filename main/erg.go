@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	goopt "github.com/droundy/goopt"
-	"github.com/square/erg"
 	"os"
 	"strconv"
+
+	goopt "github.com/droundy/goopt"
+	"github.com/square/erg"
 )
 
 var port = goopt.Int([]string{"-p", "--port"}, 8080, "Port to connect to. Can also be set with RANGE_PORT environment variable.")
 var host = goopt.String([]string{"-h", "--host"}, "localhost", "Host to connect to. Can also be set with RANGE_HOST environment variable.")
 var ssl = goopt.Flag([]string{"-s", "--ssl"}, []string{"--no-ssl"},
-	"Don't use SSL", "Use SSL. Can also be set with RANGE_SSL environment variable.")
+	"Use SSL. Can also be set with RANGE_SSL environment variable.", "Don't use SSL")
 var expand = goopt.Flag([]string{"-e", "--expand"}, []string{"--no-expand"},
 	"Do not compress results", "Compress results (default)")
 
