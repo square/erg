@@ -55,7 +55,7 @@ func main() {
 
 	result, err := e.Expand(query)
 	if err != nil {
-		fmt.Println("Error: ", err.Error())
+		fmt.Fprintln(os.Stderr, "Error: ", err.Error())
 		os.Exit(1)
 	}
 
