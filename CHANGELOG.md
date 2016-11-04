@@ -1,5 +1,10 @@
 # Erg History
 
+# 1.2.1 - 04 Nov 2016
+
+* Fix arg clash on -h
+* Move to square repo
+
 # 1.2.0 - 26 Oct 2015
 
 * Non-zero exit code when the server does not return an HTTP 200 success code.
