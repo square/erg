@@ -18,10 +18,11 @@ import (
 // Sort boolean - turn it off/on for sorting on expand
 // default is true
 type Erg struct {
-	host string
-	port int
-	ssl  bool
-	Sort bool
+	host   string
+	port   int
+	ssl    bool
+	Sort   bool
+	client *http.Client
 }
 
 // New(address string) returns a new erg
@@ -30,11 +31,28 @@ type Erg struct {
 // port - port default - 8080
 // ssl - use https or not default - false
 func New(host string, port int) *Erg {
-	return &Erg{host: host, port: port, ssl: false, Sort: true}
+	// TODO: Remove this with go 1.4
+	// http://stackoverflow.com/questions/25008571/golang-issue-x509-cannot-verify-signature-algorithm-unimplemented-on-net-http
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			MaxVersion:               tls.VersionTLS11,
+			PreferServerCipherSuites: true,
+		},
+	}
+	client := &http.Client{Transport: tr}
+	return &Erg{
+		host:   host,
+		port:   port,
+		ssl:    false,
+		Sort:   true,
+		client: client,
+	}
 }
 
 func NewWithSsl(host string, port int) *Erg {
-	return &Erg{host: host, port: port, ssl: true, Sort: true}
+	e := New(host, port)
+	e.ssl = true
+	return e
 }
 
 // Expand takes a range expression as argument
@@ -46,26 +64,20 @@ func (e *Erg) Expand(query string) (result []string, err error) {
 	if e.ssl {
 		protocol = "https"
 	}
-	// TODO: Remove this with go 1.4
-	// http://stackoverflow.com/questions/25008571/golang-issue-x509-cannot-verify-signature-algorithm-unimplemented-on-net-http
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MaxVersion:               tls.VersionTLS11,
-			PreferServerCipherSuites: true,
-		},
-	}
-	client := &http.Client{Transport: tr}
 
-	resp, err := client.Get(fmt.Sprintf("%s://%s:%d/range/list?%s",
+	resp, err := e.client.Get(fmt.Sprintf("%s://%s:%d/range/list?%s",
 		protocol,
 		e.host,
 		e.port,
 		url.QueryEscape(query),
 	))
-
 	if err != nil {
 		return nil, err
 	}
+
+	// "When err is nil, resp always contains a non-nil resp.Body. Caller should
+	// close resp.Body when done reading from it." https://golang.org/pkg/net/http/#Client.Get
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		body, readErr := ioutil.ReadAll(resp.Body)
@@ -75,9 +87,7 @@ func (e *Erg) Expand(query string) (result []string, err error) {
 		return nil, errors.New(string(body))
 	}
 
-	defer resp.Body.Close()
 	scanner := bufio.NewScanner(resp.Body)
-
 	grangeResult := grange.NewResult()
 	for scanner.Scan() {
 		grangeResult.Add(scanner.Text())
