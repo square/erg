@@ -55,6 +55,16 @@ func NewWithSsl(host string, port int) *Erg {
 	return e
 }
 
+func NewWithClient(client *http.Client, host string, port int, ssl bool) *Erg {
+	return &Erg{
+		host:   host,
+		port:   port,
+		ssl:    ssl,
+		Sort:   true,
+		client: client,
+	}
+}
+
 // Expand takes a range expression as argument
 // and returns an slice of strings as result
 // err is set to nil on success
