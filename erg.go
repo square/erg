@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/fvbommel/sortorder"
 	"github.com/square/grange"
-	"vbom.ml/util/sortorder"
 )
 
 // Erg type
