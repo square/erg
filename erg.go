@@ -2,7 +2,6 @@ package erg
 
 import (
 	"bufio"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -31,21 +30,12 @@ type Erg struct {
 // port - port default - 8080
 // ssl - use https or not default - false
 func New(host string, port int) *Erg {
-	// TODO: Remove this with go 1.4
-	// http://stackoverflow.com/questions/25008571/golang-issue-x509-cannot-verify-signature-algorithm-unimplemented-on-net-http
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MaxVersion:               tls.VersionTLS11,
-			PreferServerCipherSuites: true,
-		},
-	}
-	client := &http.Client{Transport: tr}
 	return &Erg{
 		host:   host,
 		port:   port,
 		ssl:    false,
 		Sort:   true,
-		client: client,
+		client: &http.Client{},
 	}
 }
 
