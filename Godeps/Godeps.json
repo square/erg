@@ -1,0 +1,14 @@
+{
+	"ImportPath": "github.com/xaviershay/erg",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/xaviershay/grange",
+			"Rev": "2b8e02ded2fa04849f57af72efebda71e4f70a00"
+		},
+		{
+			"ImportPath": "vbom.ml/util/sortorder",
+			"Rev": "d600ec780753afcecf0644c757a12edbab8c41b6"
+		}
+	]
+}
